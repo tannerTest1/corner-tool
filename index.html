@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NASCAR Corner Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+    <style>
+      :root {
+        --bg-ink: #08121f;
+        --bg-panel: rgba(11, 23, 39, 0.88);
+        --bg-soft: rgba(18, 34, 54, 0.9);
+        --line-track: #2b3b54;
+        --line-ideal: rgba(152, 224, 255, 0.3);
+        --line-active: #ffb84d;
+        --text-main: #e7f0ff;
+        --text-soft: #94a8c4;
+        --accent-entry: #5bc0ff;
+        --accent-center: #f5a623;
+        --accent-exit: #7be495;
+        --accent-alert: #ff6b6b;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text-main);
+        background:
+          radial-gradient(circle at top left, rgba(65, 130, 255, 0.18), transparent 32%),
+          radial-gradient(circle at right, rgba(255, 181, 71, 0.16), transparent 28%),
+          linear-gradient(180deg, #09111d 0%, #07111a 45%, #040912 100%);
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      }
+
+      .panel {
+        background: var(--bg-panel);
+        border: 1px solid rgba(158, 186, 221, 0.12);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
+        backdrop-filter: blur(12px);
+      }
+
+      .telemetry-track {
+        background: linear-gradient(180deg, rgba(34, 48, 71, 0.9), rgba(16, 25, 39, 0.92));
+      }
+
+      .telemetry-fill {
+        transition: height 120ms linear, transform 120ms linear, width 120ms linear;
+      }
+
+      .scenario-chip {
+        transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+      }
+
+      #canvas-holder canvas {
+        display: block;
+        border-radius: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="mx-auto flex min-h-screen max-w-7xl flex-col gap-5 px-4 py-5 lg:px-6">
+      <header class="flex flex-col gap-3 rounded-[1.75rem] border border-white/10 bg-white/5 px-5 py-4 shadow-2xl shadow-slate-950/30">
+        <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.35em] text-sky-200/70">Kansas Speedway • Turn 1</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">NASCAR Corner Coach</h1>
+          </div>
+          <p class="max-w-2xl text-sm leading-6 text-slate-300">
+            Compare the ideal line against common Cup-car mistakes. Watch the path, inputs, and grip usage together so the
+            cause-and-effect of each corner is easy to read.
+          </p>
+        </div>
+      </header>
+
+      <section class="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1.9fr)_minmax(320px,0.9fr)]">
+        <div class="panel overflow-hidden rounded-[1.75rem] p-4">
+          <div class="mb-3 flex items-center justify-between px-1">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Corner View</p>
+              <h2 class="text-lg font-semibold text-slate-100">Top-Down Teaching Replay</h2>
+            </div>
+            <div class="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1 text-xs text-slate-300">
+              Ghost line = ideal reference
+            </div>
+          </div>
+          <div id="canvas-holder" class="min-h-[420px] rounded-[1.25rem] border border-white/8 bg-slate-950/50"></div>
+        </div>
+
+        <aside class="flex flex-col gap-4">
+          <section class="panel rounded-[1.75rem] p-4">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs uppercase tracking-[0.28em] text-slate-400">Telemetry</p>
+                <h2 class="text-lg font-semibold text-slate-100">Driver Inputs & Balance</h2>
+              </div>
+              <div id="phase-badge" class="rounded-full px-3 py-1 text-sm font-semibold text-slate-950">Entry</div>
+            </div>
+
+            <div class="mb-5 grid grid-cols-[118px_minmax(0,1fr)] gap-4">
+              <div class="rounded-2xl border border-white/8 bg-slate-950/45 p-3">
+                <p class="mb-2 text-xs uppercase tracking-[0.28em] text-slate-400">Grip Circle</p>
+                <div class="flex justify-center">
+                  <svg id="grip-circle" viewBox="0 0 120 120" class="h-28 w-28 overflow-visible">
+                    <circle cx="60" cy="60" r="47" fill="none" stroke="rgba(148,168,196,0.24)" stroke-width="1.5"></circle>
+                    <circle cx="60" cy="60" r="28" fill="none" stroke="rgba(148,168,196,0.12)" stroke-width="1"></circle>
+                    <line x1="60" y1="8" x2="60" y2="112" stroke="rgba(148,168,196,0.22)" stroke-width="1"></line>
+                    <line x1="8" y1="60" x2="112" y2="60" stroke="rgba(148,168,196,0.22)" stroke-width="1"></line>
+                    <circle id="grip-dot" cx="60" cy="60" r="6.5" fill="#ffb84d" stroke="white" stroke-opacity="0.7" stroke-width="1.5"></circle>
+                  </svg>
+                </div>
+                <div class="mt-2 grid grid-cols-2 gap-2 text-[11px] text-slate-400">
+                  <span>Longitudinal</span>
+                  <span class="text-right">Lateral</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-3">
+                <div class="rounded-2xl border border-white/8 bg-slate-950/45 p-3">
+                  <p class="mb-3 text-xs uppercase tracking-[0.25em] text-slate-400">Steering</p>
+                  <div class="telemetry-track relative mx-auto flex h-40 w-12 items-end overflow-hidden rounded-full border border-white/8 p-1">
+                    <div id="steering-fill" class="telemetry-fill w-full rounded-full bg-gradient-to-t from-sky-400 to-sky-200"></div>
+                  </div>
+                  <p id="steering-value" class="mt-3 text-center text-sm font-semibold text-sky-100">0%</p>
+                </div>
+                <div class="rounded-2xl border border-white/8 bg-slate-950/45 p-3">
+                  <p class="mb-3 text-xs uppercase tracking-[0.25em] text-slate-400">Brake</p>
+                  <div class="telemetry-track relative mx-auto flex h-40 w-12 items-end overflow-hidden rounded-full border border-white/8 p-1">
+                    <div id="brake-fill" class="telemetry-fill w-full rounded-full bg-gradient-to-t from-rose-500 to-orange-300"></div>
+                  </div>
+                  <p id="brake-value" class="mt-3 text-center text-sm font-semibold text-rose-100">0%</p>
+                </div>
+                <div class="rounded-2xl border border-white/8 bg-slate-950/45 p-3">
+                  <p class="mb-3 text-xs uppercase tracking-[0.25em] text-slate-400">Throttle</p>
+                  <div class="telemetry-track relative mx-auto flex h-40 w-12 items-end overflow-hidden rounded-full border border-white/8 p-1">
+                    <div id="throttle-fill" class="telemetry-fill w-full rounded-full bg-gradient-to-t from-emerald-500 to-lime-300"></div>
+                  </div>
+                  <p id="throttle-value" class="mt-3 text-center text-sm font-semibold text-emerald-100">0%</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-[1.5rem] border border-white/8 bg-slate-950/45 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.28em] text-slate-400">Current Scenario</p>
+                  <h3 id="scenario-title" class="text-xl font-semibold text-slate-100"></h3>
+                </div>
+                <div id="phase-readout" class="text-sm font-medium text-slate-300">Entry</div>
+              </div>
+              <div id="coaching-panel" class="space-y-3 text-sm leading-6 text-slate-200"></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="panel rounded-[1.75rem] p-4">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              id="play-pause"
+              class="rounded-full bg-sky-300 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-200"
+              type="button"
+            >
+              Pause
+            </button>
+            <button
+              id="restart"
+              class="rounded-full border border-white/12 bg-white/5 px-5 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10"
+              type="button"
+            >
+              Restart
+            </button>
+            <div class="rounded-full border border-white/10 bg-slate-950/50 px-4 py-2 text-sm text-slate-300">
+              Playback <span id="playback-time" class="font-semibold text-slate-100">0.0s</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2 lg:items-end">
+            <label for="scenario-select" class="text-xs uppercase tracking-[0.28em] text-slate-400">Scenario Selector</label>
+            <select
+              id="scenario-select"
+              class="rounded-full border border-white/12 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 outline-none transition focus:border-sky-300"
+            ></select>
+          </div>
+        </div>
+
+        <div id="scenario-chips" class="mt-4 flex flex-wrap gap-2"></div>
+      </section>
+    </main>
+
+    <script>
+      const THEME = {
+        background: "#08121f",
+        panel: "#0f1c2d",
+        apron: "#08131f",
+        trackOuter: "#2b3b54",
+        trackInner: "#0a1018",
+        lineIdeal: "rgba(152, 224, 255, 0.35)",
+        lineActive: "#ffb84d",
+        lineShadow: "rgba(8, 18, 31, 0.45)",
+        apronEdge: "#7ea2d8",
+        entry: "#5bc0ff",
+        center: "#f5a623",
+        exit: "#7be495",
+        warning: "#ff6b6b",
+        textSoft: "#94a8c4"
+      };
+
+      const TRACK = {
+        entryVector: { x: 110, y: 485 },
+        turnCenter: { x: 410, y: 365 },
+        exitVector: { x: 770, y: 165 },
+        trackWidth: 118,
+        apronInset: 34
+      };
+
+      const PHASE_STYLES = {
+        entry: { label: "Entry", bg: "rgba(91, 192, 255, 0.92)", text: "#04111d" },
+        center: { label: "Center", bg: "rgba(245, 166, 35, 0.95)", text: "#1d1100" },
+        exit: { label: "Exit", bg: "rgba(123, 228, 149, 0.95)", text: "#06180c" }
+      };
+
+      let p5Instance = null;
+
+      const initialScenarioId = (() => {
+        const params = new URLSearchParams(window.location.search);
+        const requested = params.get("scenario");
+        return requested && ["ideal", "entry-speed", "early-turn", "early-throttle"].includes(requested)
+          ? requested
+          : "ideal";
+      })();
+
+      const appState = {
+        selectedScenarioId: initialScenarioId,
+        isPlaying: true,
+        currentTime: 0,
+        lastFrameMillis: 0,
+        canvasSize: { width: 0, height: 0 }
+      };
+
+      const SCENARIOS = [
+        {
+          id: "ideal",
+          label: "Ideal corner",
+          accent: "#72f2c7",
+          notes: {
+            whatDriverDid: "The driver lifted, bled brake pressure off smoothly, and turned in right on time.",
+            whatCarDid: "The car rotated naturally to a clean late apex and stayed tight enough to open the wheel early.",
+            why: "The load was shared cleanly between braking, turning, and throttle so the front tires kept bite through center.",
+            change: "Repeat this rhythm: patient entry, one decisive turn-in, then feed throttle once the nose is pointed."
+          },
+          keyframes: [
+            { t: 0.0, x: 120, y: 488, heading: -0.12, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: 0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 198, y: 470, heading: -0.21, steering: 0.18, brake: 0.45, throttle: 0.34, gripLat: 0.25, gripLong: 0.46, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 285, y: 432, heading: -0.46, steering: 0.42, brake: 0.34, throttle: 0.12, gripLat: 0.52, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 356, y: 370, heading: -0.84, steering: 0.66, brake: 0.14, throttle: 0.08, gripLat: 0.75, gripLong: 0.16, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 430, y: 300, heading: -0.69, steering: 0.58, brake: 0.02, throttle: 0.28, gripLat: 0.68, gripLong: -0.18, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 530, y: 246, heading: -0.37, steering: 0.34, brake: 0.0, throttle: 0.62, gripLat: 0.42, gripLong: -0.54, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 656, y: 210, heading: -0.18, steering: 0.16, brake: 0.0, throttle: 0.86, gripLat: 0.22, gripLong: -0.76, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 760, y: 182, heading: -0.1, steering: 0.06, brake: 0.0, throttle: 1.0, gripLat: 0.1, gripLong: -0.9, phase: "exit", calloutIndex: 3 }
+          ]
+        },
+        {
+          id: "entry-speed",
+          label: "Too much entry speed",
+          accent: "#ff8f7a",
+          notes: {
+            whatDriverDid: "The driver carried too much speed into Turn 1 and stayed in the brake zone too deep.",
+            whatCarDid: "The car stayed straight too long, rotated late, and drifted wide on exit.",
+            why: "The overloaded front tires were busy slowing the car, so they could not accept steering input early enough.",
+            change: "Trim a little more speed before turn-in so the nose can take a set sooner and finish lower."
+          },
+          keyframes: [
+            { t: 0.0, x: 120, y: 492, heading: -0.08, steering: 0.06, brake: 0.1, throttle: 0.84, gripLat: 0.08, gripLong: 0.12, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 214, y: 486, heading: -0.1, steering: 0.08, brake: 0.28, throttle: 0.5, gripLat: 0.12, gripLong: 0.34, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 318, y: 458, heading: -0.22, steering: 0.2, brake: 0.56, throttle: 0.1, gripLat: 0.26, gripLong: 0.58, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 422, y: 408, heading: -0.44, steering: 0.34, brake: 0.4, throttle: 0.04, gripLat: 0.4, gripLong: 0.44, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 512, y: 346, heading: -0.47, steering: 0.42, brake: 0.1, throttle: 0.12, gripLat: 0.52, gripLong: 0.18, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 610, y: 292, heading: -0.34, steering: 0.32, brake: 0.0, throttle: 0.4, gripLat: 0.4, gripLong: -0.28, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 716, y: 262, heading: -0.18, steering: 0.16, brake: 0.0, throttle: 0.72, gripLat: 0.24, gripLong: -0.56, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 802, y: 248, heading: -0.09, steering: 0.08, brake: 0.0, throttle: 0.94, gripLat: 0.12, gripLong: -0.8, phase: "exit", calloutIndex: 3 }
+          ]
+        },
+        {
+          id: "early-turn",
+          label: "Turn-in too early",
+          accent: "#ffdb6e",
+          notes: {
+            whatDriverDid: "The driver pointed the car to the apron too soon and reached the apex early.",
+            whatCarDid: "The car looked good for a moment in the middle, then ran out of road and had to unwind awkwardly.",
+            why: "Using the lane too early pinched the corner, so there was no space left to let the car breathe on exit.",
+            change: "Delay the wheel input a beat so the apex happens later and the exit lane stays open."
+          },
+          keyframes: [
+            { t: 0.0, x: 118, y: 490, heading: -0.13, steering: 0.12, brake: 0.16, throttle: 0.74, gripLat: 0.14, gripLong: 0.2, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 188, y: 456, heading: -0.33, steering: 0.32, brake: 0.34, throttle: 0.26, gripLat: 0.36, gripLong: 0.36, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 246, y: 388, heading: -0.7, steering: 0.7, brake: 0.26, throttle: 0.1, gripLat: 0.74, gripLong: 0.24, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 312, y: 296, heading: -0.93, steering: 0.8, brake: 0.08, throttle: 0.08, gripLat: 0.84, gripLong: 0.08, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 430, y: 248, heading: -0.62, steering: 0.62, brake: 0.0, throttle: 0.22, gripLat: 0.66, gripLong: -0.18, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 564, y: 236, heading: -0.28, steering: 0.4, brake: 0.0, throttle: 0.52, gripLat: 0.46, gripLong: -0.44, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 692, y: 238, heading: -0.1, steering: 0.22, brake: 0.0, throttle: 0.78, gripLat: 0.28, gripLong: -0.66, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 804, y: 246, heading: -0.03, steering: 0.12, brake: 0.0, throttle: 0.95, gripLat: 0.14, gripLong: -0.82, phase: "exit", calloutIndex: 3 }
+          ]
+        },
+        {
+          id: "early-throttle",
+          label: "Throttle too early",
+          accent: "#97ffb3",
+          notes: {
+            whatDriverDid: "The driver picked the throttle up before the car had fully finished rotating through center.",
+            whatCarDid: "The rear drive pushed the nose up the track and made the exit line widen sooner than planned.",
+            why: "Adding power while steering load was still high asked the front tires to turn and accelerate at the same time.",
+            change: "Wait until the wheel can open a touch more, then roll into throttle instead of snapping to it."
+          },
+          keyframes: [
+            { t: 0.0, x: 120, y: 488, heading: -0.12, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: 0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 198, y: 470, heading: -0.21, steering: 0.18, brake: 0.45, throttle: 0.34, gripLat: 0.25, gripLong: 0.46, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 284, y: 432, heading: -0.46, steering: 0.42, brake: 0.34, throttle: 0.12, gripLat: 0.52, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 356, y: 372, heading: -0.81, steering: 0.66, brake: 0.12, throttle: 0.16, gripLat: 0.74, gripLong: 0.08, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 442, y: 314, heading: -0.58, steering: 0.58, brake: 0.0, throttle: 0.52, gripLat: 0.64, gripLong: -0.44, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 554, y: 278, heading: -0.28, steering: 0.42, brake: 0.0, throttle: 0.82, gripLat: 0.48, gripLong: -0.74, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 676, y: 262, heading: -0.14, steering: 0.24, brake: 0.0, throttle: 0.94, gripLat: 0.32, gripLong: -0.86, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 790, y: 255, heading: -0.06, steering: 0.12, brake: 0.0, throttle: 1.0, gripLat: 0.18, gripLong: -0.92, phase: "exit", calloutIndex: 3 }
+          ]
+        }
+      ];
+
+      const DOM = {
+        canvasHolder: document.getElementById("canvas-holder"),
+        playPause: document.getElementById("play-pause"),
+        restart: document.getElementById("restart"),
+        scenarioSelect: document.getElementById("scenario-select"),
+        scenarioChips: document.getElementById("scenario-chips"),
+        playbackTime: document.getElementById("playback-time"),
+        scenarioTitle: document.getElementById("scenario-title"),
+        phaseBadge: document.getElementById("phase-badge"),
+        phaseReadout: document.getElementById("phase-readout"),
+        coachingPanel: document.getElementById("coaching-panel"),
+        steeringFill: document.getElementById("steering-fill"),
+        brakeFill: document.getElementById("brake-fill"),
+        throttleFill: document.getElementById("throttle-fill"),
+        steeringValue: document.getElementById("steering-value"),
+        brakeValue: document.getElementById("brake-value"),
+        throttleValue: document.getElementById("throttle-value"),
+        gripDot: document.getElementById("grip-dot")
+      };
+
+      const sketch = (p) => {
+        p.setup = () => {
+          const { width, height } = measureCanvas();
+          appState.canvasSize = { width, height };
+          p.createCanvas(width, height).parent("canvas-holder");
+          p.angleMode(p.RADIANS);
+          p.noLoop();
+          resizeCanvasToHolder();
+          syncUi();
+        };
+
+        p.draw = () => {
+          updatePlaybackClock(p.millis());
+          const scenario = getSelectedScenario();
+          const sample = interpolateScenarioSample(scenario, appState.currentTime);
+          const idealScenario = SCENARIOS[0];
+          p.background(THEME.background);
+          drawBackdrop(p);
+          drawTrack(p);
+          drawPath(p, idealScenario.keyframes, THEME.lineIdeal, 4, true);
+          drawPath(p, scenario.keyframes, scenario.accent, 5.5, false);
+          drawCarTrailMarkers(p, scenario.keyframes, scenario.accent);
+          drawCar(p, sample, scenario.accent);
+          drawOverlayLegend(p, scenario);
+          syncUi(sample, scenario);
+        };
+
+        p.windowResized = () => {
+          resizeCanvasToHolder();
+        };
+      };
+
+      p5Instance = new p5(sketch);
+
+      function measureCanvas() {
+        const width = Math.max(320, DOM.canvasHolder.clientWidth);
+        const height = Math.max(420, Math.min(640, Math.round(width * 0.64)));
+        return { width, height };
+      }
+
+      function resizeCanvasToHolder() {
+        if (!p5Instance) return;
+        const { width, height } = measureCanvas();
+        appState.canvasSize = { width, height };
+        p5Instance.resizeCanvas(width, height);
+        p5Instance.redraw();
+      }
+
+      function getSelectedScenario() {
+        return SCENARIOS.find((scenario) => scenario.id === appState.selectedScenarioId) || SCENARIOS[0];
+      }
+
+      function getScenarioDuration(scenario) {
+        return scenario.keyframes[scenario.keyframes.length - 1].t;
+      }
+
+      function updatePlaybackClock(currentMillis) {
+        if (!appState.lastFrameMillis) {
+          appState.lastFrameMillis = currentMillis;
+          return;
+        }
+
+        if (!appState.isPlaying) {
+          appState.lastFrameMillis = currentMillis;
+          return;
+        }
+
+        const scenario = getSelectedScenario();
+        const duration = getScenarioDuration(scenario);
+        const deltaSeconds = Math.min(0.05, (currentMillis - appState.lastFrameMillis) / 1000);
+        appState.currentTime += deltaSeconds;
+
+        if (appState.currentTime > duration) {
+          appState.currentTime = 0;
+        }
+
+        appState.lastFrameMillis = currentMillis;
+      }
+
+      function interpolateScenarioSample(scenario, time) {
+        const keyframes = scenario.keyframes;
+        const duration = getScenarioDuration(scenario);
+        const clampedTime = Math.max(0, Math.min(time, duration));
+
+        if (clampedTime <= keyframes[0].t) {
+          return { ...keyframes[0], progress: 0 };
+        }
+
+        for (let i = 0; i < keyframes.length - 1; i += 1) {
+          const current = keyframes[i];
+          const next = keyframes[i + 1];
+
+          if (clampedTime >= current.t && clampedTime <= next.t) {
+            const span = next.t - current.t || 1;
+            const ratio = (clampedTime - current.t) / span;
+            return {
+              t: clampedTime,
+              x: lerp(current.x, next.x, ratio),
+              y: lerp(current.y, next.y, ratio),
+              heading: lerpAngle(current.heading, next.heading, ratio),
+              steering: lerp(current.steering, next.steering, ratio),
+              brake: lerp(current.brake, next.brake, ratio),
+              throttle: lerp(current.throttle, next.throttle, ratio),
+              gripLat: lerp(current.gripLat, next.gripLat, ratio),
+              gripLong: lerp(current.gripLong, next.gripLong, ratio),
+              phase: ratio < 0.5 ? current.phase : next.phase,
+              calloutIndex: ratio < 0.5 ? current.calloutIndex : next.calloutIndex,
+              progress: clampedTime / duration
+            };
+          }
+        }
+
+        return { ...keyframes[keyframes.length - 1], progress: 1 };
+      }
+
+      function lerp(start, end, amount) {
+        return start + (end - start) * amount;
+      }
+
+      function lerpAngle(start, end, amount) {
+        const diff = ((((end - start) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+        return start + diff * amount;
+      }
+
+      function scalePoint(point) {
+        const width = appState.canvasSize.width;
+        const height = appState.canvasSize.height;
+        const bounds = {
+          minX: 70,
+          maxX: 820,
+          minY: 145,
+          maxY: 515
+        };
+        const paddingX = width * 0.08;
+        const paddingY = height * 0.1;
+        const usableWidth = width - paddingX * 2;
+        const usableHeight = height - paddingY * 2;
+        return {
+          x: paddingX + ((point.x - bounds.minX) / (bounds.maxX - bounds.minX)) * usableWidth,
+          y: paddingY + ((point.y - bounds.minY) / (bounds.maxY - bounds.minY)) * usableHeight
+        };
+      }
+
+      function buildTrackPath(offset) {
+        const points = [
+          { x: TRACK.entryVector.x + offset * 0.25, y: TRACK.entryVector.y - offset * 0.45 },
+          { x: 188 + offset * 0.15, y: 478 - offset * 0.55 },
+          { x: 278 + offset * 0.05, y: 442 - offset * 0.72 },
+          { x: 362 - offset * 0.08, y: 374 - offset * 0.62 },
+          { x: 454 - offset * 0.18, y: 286 - offset * 0.25 },
+          { x: 576 - offset * 0.08, y: 228 + offset * 0.08 },
+          { x: TRACK.exitVector.x - offset * 0.04, y: TRACK.exitVector.y + offset * 0.25 }
+        ];
+        return points;
+      }
+
+      function drawBackdrop(p) {
+        p.push();
+        p.noStroke();
+        for (let i = 0; i < 6; i += 1) {
+          const alpha = 20 - i * 2;
+          p.fill(20, 54, 89, alpha);
+          const radius = appState.canvasSize.width * (0.15 + i * 0.1);
+          p.circle(appState.canvasSize.width * 0.14, appState.canvasSize.height * 0.14, radius);
+        }
+
+        p.stroke(255, 255, 255, 10);
+        p.strokeWeight(1);
+        for (let x = 0; x <= appState.canvasSize.width; x += 54) {
+          p.line(x, 0, x, appState.canvasSize.height);
+        }
+        for (let y = 0; y <= appState.canvasSize.height; y += 54) {
+          p.line(0, y, appState.canvasSize.width, y);
+        }
+        p.pop();
+      }
+
+      function drawTrack(p) {
+        const outer = buildTrackPath(TRACK.trackWidth * 0.58);
+        const inner = buildTrackPath(-TRACK.trackWidth * 0.46);
+        const apron = buildTrackPath(-TRACK.apronInset);
+
+        p.push();
+        p.noStroke();
+        p.fill(THEME.trackOuter);
+        drawClosedRibbon(p, outer, inner);
+        p.fill(THEME.apron);
+        drawClosedRibbon(p, inner, apron);
+
+        p.stroke(THEME.apronEdge);
+        p.strokeWeight(1.3);
+        p.noFill();
+        drawPolyLine(p, apron);
+
+        p.stroke(255, 255, 255, 26);
+        p.strokeWeight(1.4);
+        drawPolyLine(p, outer);
+        drawPolyLine(p, inner);
+        p.pop();
+      }
+
+      function drawClosedRibbon(p, outerPoints, innerPoints) {
+        p.beginShape();
+        outerPoints.forEach((point) => {
+          const scaled = scalePoint(point);
+          p.curveVertex(scaled.x, scaled.y);
+        });
+        const reversedInner = [...innerPoints].reverse();
+        reversedInner.forEach((point) => {
+          const scaled = scalePoint(point);
+          p.curveVertex(scaled.x, scaled.y);
+        });
+        p.endShape(p.CLOSE);
+      }
+
+      function drawPolyLine(p, points) {
+        p.beginShape();
+        points.forEach((point) => {
+          const scaled = scalePoint(point);
+          p.vertex(scaled.x, scaled.y);
+        });
+        p.endShape();
+      }
+
+      function drawPath(p, keyframes, color, weight, ghosted) {
+        p.push();
+        if (ghosted) {
+          p.drawingContext.setLineDash([11, 11]);
+        }
+        p.noFill();
+        p.stroke(THEME.lineShadow);
+        p.strokeWeight(weight + 3);
+        p.beginShape();
+        keyframes.forEach((frame) => {
+          const scaled = scalePoint(frame);
+          p.curveVertex(scaled.x, scaled.y);
+        });
+        p.endShape();
+
+        p.stroke(color);
+        p.strokeWeight(weight);
+        p.beginShape();
+        keyframes.forEach((frame) => {
+          const scaled = scalePoint(frame);
+          p.curveVertex(scaled.x, scaled.y);
+        });
+        p.endShape();
+        p.pop();
+      }
+
+      function drawCarTrailMarkers(p, keyframes, accent) {
+        p.push();
+        p.noStroke();
+        keyframes.forEach((frame, index) => {
+          const point = scalePoint(frame);
+          const size = index === 0 || index === keyframes.length - 1 ? 8 : 5;
+          p.fill(index % 2 === 0 ? "rgba(255,255,255,0.14)" : accent);
+          p.circle(point.x, point.y, size);
+        });
+        p.pop();
+      }
+
+      function drawCar(p, sample, accent) {
+        const point = scalePoint(sample);
+        const width = appState.canvasSize.width * 0.042;
+        const height = appState.canvasSize.height * 0.028;
+
+        p.push();
+        p.translate(point.x, point.y);
+        p.rotate(sample.heading);
+        p.rectMode(p.CENTER);
+        p.noStroke();
+        p.fill(6, 12, 22, 170);
+        p.rect(4, 5, width, height, 8);
+        p.fill(accent);
+        p.rect(0, 0, width, height, 8);
+        p.fill(255, 255, 255, 180);
+        p.rect(width * 0.18, 0, width * 0.28, height * 0.68, 4);
+        p.fill(255, 243, 193, 220);
+        p.rect(width * 0.38, 0, width * 0.14, height * 0.74, 3);
+        p.pop();
+      }
+
+      function drawOverlayLegend(p, scenario) {
+        p.push();
+        p.noStroke();
+        p.fill(8, 16, 28, 188);
+        p.rect(18, 18, 252, 118, 14);
+        p.fill(255);
+        p.textSize(12);
+        p.text("Ideal line", 54, 42);
+        p.text("Active scenario", 54, 67);
+        p.text("Entry", 28, appState.canvasSize.height - 54);
+        p.text("Center", appState.canvasSize.width * 0.49, appState.canvasSize.height * 0.42);
+        p.text("Exit", appState.canvasSize.width - 70, 48);
+        p.stroke(THEME.lineIdeal);
+        p.strokeWeight(4);
+        p.drawingContext.setLineDash([9, 9]);
+        p.line(24, 38, 46, 38);
+        p.drawingContext.setLineDash([]);
+        p.stroke(scenario.accent);
+        p.line(24, 63, 46, 63);
+        p.noStroke();
+        p.fill(255, 255, 255, 90);
+        p.circle(36, appState.canvasSize.height - 60, 6);
+        p.circle(appState.canvasSize.width * 0.47, appState.canvasSize.height * 0.45, 6);
+        p.circle(appState.canvasSize.width - 84, 54, 6);
+        p.pop();
+      }
+
+      function syncUi(sample = interpolateScenarioSample(getSelectedScenario(), appState.currentTime), scenario = getSelectedScenario()) {
+        DOM.playPause.textContent = appState.isPlaying ? "Pause" : "Play";
+        DOM.playbackTime.textContent = `${appState.currentTime.toFixed(1)}s`;
+        DOM.scenarioTitle.textContent = scenario.label;
+
+        syncBar(DOM.steeringFill, DOM.steeringValue, sample.steering);
+        syncBar(DOM.brakeFill, DOM.brakeValue, sample.brake);
+        syncBar(DOM.throttleFill, DOM.throttleValue, sample.throttle);
+        syncGrip(sample.gripLat, sample.gripLong);
+        syncPhase(sample.phase);
+        syncCoaching(sample.calloutIndex, scenario);
+        syncChips();
+      }
+
+      function syncBar(fillElement, valueElement, amount) {
+        const clamped = Math.max(0, Math.min(1, amount));
+        fillElement.style.height = `${Math.max(8, clamped * 100)}%`;
+        valueElement.textContent = `${Math.round(clamped * 100)}%`;
+      }
+
+      function syncGrip(lateral, longitudinal) {
+        const radius = 47;
+        const x = 60 + Math.max(-1, Math.min(1, lateral)) * radius;
+        const y = 60 + Math.max(-1, Math.min(1, longitudinal)) * radius;
+        DOM.gripDot.setAttribute("cx", x.toFixed(1));
+        DOM.gripDot.setAttribute("cy", y.toFixed(1));
+      }
+
+      function syncPhase(phaseKey) {
+        const style = PHASE_STYLES[phaseKey] || PHASE_STYLES.entry;
+        DOM.phaseBadge.textContent = style.label;
+        DOM.phaseBadge.style.backgroundColor = style.bg;
+        DOM.phaseBadge.style.color = style.text;
+        DOM.phaseReadout.textContent = `${style.label} phase`;
+      }
+
+      function syncCoaching(calloutIndex, scenario) {
+        const emphasis = scenario.id === "ideal"
+          ? [
+              "This is the reference lap.",
+              "This is the clean turn-in window.",
+              "This is where balance starts paying off.",
+              "This is the exit shape to copy."
+            ]
+          : [
+              "Watch where the mistake begins.",
+              "The timing problem is obvious here.",
+              "This is where the car pays for it.",
+              "Use the correction to protect the exit."
+            ];
+
+        DOM.coachingPanel.innerHTML = `
+          <div class="rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-400">
+            ${emphasis[Math.max(0, Math.min(emphasis.length - 1, calloutIndex))]}
+          </div>
+          <div><span class="font-semibold text-slate-100">1. What the driver did:</span> ${scenario.notes.whatDriverDid}</div>
+          <div><span class="font-semibold text-slate-100">2. What the car did:</span> ${scenario.notes.whatCarDid}</div>
+          <div><span class="font-semibold text-slate-100">3. Why:</span> ${scenario.notes.why}</div>
+          <div><span class="font-semibold text-slate-100">4. What to change:</span> ${scenario.notes.change}</div>
+        `;
+      }
+
+      function syncChips() {
+        Array.from(DOM.scenarioChips.children).forEach((chip) => {
+          const isActive = chip.dataset.scenarioId === appState.selectedScenarioId;
+          chip.classList.toggle("bg-white/10", !isActive);
+          chip.classList.toggle("border-white/10", !isActive);
+          chip.classList.toggle("text-slate-300", !isActive);
+          chip.classList.toggle("text-slate-950", isActive);
+          chip.classList.toggle("border-transparent", isActive);
+          chip.style.backgroundColor = isActive ? getSelectedScenario().accent : "transparent";
+        });
+      }
+
+      function buildScenarioControls() {
+        SCENARIOS.forEach((scenario) => {
+          const option = document.createElement("option");
+          option.value = scenario.id;
+          option.textContent = scenario.label;
+          DOM.scenarioSelect.appendChild(option);
+
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.dataset.scenarioId = scenario.id;
+          chip.className =
+            "scenario-chip rounded-full border px-3 py-1.5 text-sm font-medium";
+          chip.textContent = scenario.label;
+          chip.addEventListener("click", () => switchScenario(scenario.id));
+          DOM.scenarioChips.appendChild(chip);
+        });
+
+        DOM.scenarioSelect.value = appState.selectedScenarioId;
+      }
+
+      function switchScenario(scenarioId) {
+        appState.selectedScenarioId = scenarioId;
+        appState.currentTime = 0;
+        appState.lastFrameMillis = 0;
+        DOM.scenarioSelect.value = scenarioId;
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set("scenario", scenarioId);
+        window.history.replaceState({}, "", nextUrl);
+        if (p5Instance) {
+          p5Instance.redraw();
+        }
+      }
+
+      DOM.playPause.addEventListener("click", () => {
+        appState.isPlaying = !appState.isPlaying;
+        appState.lastFrameMillis = 0;
+        if (p5Instance) {
+          p5Instance.redraw();
+        }
+      });
+
+      DOM.restart.addEventListener("click", () => {
+        appState.currentTime = 0;
+        appState.lastFrameMillis = 0;
+        if (p5Instance) {
+          p5Instance.redraw();
+        }
+      });
+
+      DOM.scenarioSelect.addEventListener("change", (event) => {
+        switchScenario(event.target.value);
+      });
+
+      buildScenarioControls();
+      syncUi();
+
+      function animationTick() {
+        if (p5Instance) {
+          p5Instance.redraw();
+        }
+        requestAnimationFrame(animationTick);
+      }
+
+      requestAnimationFrame(animationTick);
+    </script>
+  </body>
+</html>
