@@ -4,3 +4,6 @@ entry-speed.png
 early-turn.png
 early-throttle.png
 .DS_Store
+node_modules/
+playwright-report/
+test-results/

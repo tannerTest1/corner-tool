@@ -145,6 +145,7 @@
                 <div>
                   <p class="text-xs uppercase tracking-[0.28em] text-slate-400">Current Scenario</p>
                   <h3 id="scenario-title" class="text-xl font-semibold text-slate-100"></h3>
+                  <p id="scenario-summary" class="mt-1 max-w-md text-sm leading-5 text-slate-300"></p>
                 </div>
                 <div id="phase-readout" class="text-sm font-medium text-slate-300">Entry</div>
               </div>
@@ -243,7 +244,8 @@
         {
           id: "ideal",
           label: "Ideal corner",
-          accent: "#72f2c7",
+          accent: "#6fd6ff",
+          summary: "Balanced inputs, clean rotation, and a late apex that keeps the exit open.",
           notes: {
             whatDriverDid: "The driver lifted, bled brake pressure off smoothly, and turned in right on time.",
             whatCarDid: "The car rotated naturally to a clean late apex and stayed tight enough to open the wheel early.",
@@ -265,6 +267,7 @@
           id: "entry-speed",
           label: "Too much entry speed",
           accent: "#ff8f7a",
+          summary: "The nose stays loaded too deep, so rotation happens late and the car washes out.",
           notes: {
             whatDriverDid: "The driver carried too much speed into Turn 1 and stayed in the brake zone too deep.",
             whatCarDid: "The car stayed straight too long, rotated late, and drifted wide on exit.",
@@ -286,6 +289,7 @@
           id: "early-turn",
           label: "Turn-in too early",
           accent: "#ffdb6e",
+          summary: "The driver reaches the apex too soon, pinches the corner, and runs out of exit lane.",
           notes: {
             whatDriverDid: "The driver pointed the car to the apron too soon and reached the apex early.",
             whatCarDid: "The car looked good for a moment in the middle, then ran out of road and had to unwind awkwardly.",
@@ -306,7 +310,8 @@
         {
           id: "early-throttle",
           label: "Throttle too early",
-          accent: "#97ffb3",
+          accent: "#86ff78",
+          summary: "Power comes in before the wheel can open, so the car pushes up the track on exit.",
           notes: {
             whatDriverDid: "The driver picked the throttle up before the car had fully finished rotating through center.",
             whatCarDid: "The rear drive pushed the nose up the track and made the exit line widen sooner than planned.",
@@ -317,11 +322,11 @@
             { t: 0.0, x: 120, y: 488, heading: -0.12, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: 0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
             { t: 0.8, x: 198, y: 470, heading: -0.21, steering: 0.18, brake: 0.45, throttle: 0.34, gripLat: 0.25, gripLong: 0.46, phase: "entry", calloutIndex: 0 },
             { t: 1.6, x: 284, y: 432, heading: -0.46, steering: 0.42, brake: 0.34, throttle: 0.12, gripLat: 0.52, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
-            { t: 2.4, x: 356, y: 372, heading: -0.81, steering: 0.66, brake: 0.12, throttle: 0.16, gripLat: 0.74, gripLong: 0.08, phase: "center", calloutIndex: 1 },
-            { t: 3.2, x: 442, y: 314, heading: -0.58, steering: 0.58, brake: 0.0, throttle: 0.52, gripLat: 0.64, gripLong: -0.44, phase: "center", calloutIndex: 2 },
-            { t: 4.0, x: 554, y: 278, heading: -0.28, steering: 0.42, brake: 0.0, throttle: 0.82, gripLat: 0.48, gripLong: -0.74, phase: "exit", calloutIndex: 2 },
-            { t: 4.8, x: 676, y: 262, heading: -0.14, steering: 0.24, brake: 0.0, throttle: 0.94, gripLat: 0.32, gripLong: -0.86, phase: "exit", calloutIndex: 3 },
-            { t: 5.5, x: 790, y: 255, heading: -0.06, steering: 0.12, brake: 0.0, throttle: 1.0, gripLat: 0.18, gripLong: -0.92, phase: "exit", calloutIndex: 3 }
+            { t: 2.4, x: 356, y: 374, heading: -0.79, steering: 0.66, brake: 0.12, throttle: 0.22, gripLat: 0.74, gripLong: 0.02, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 452, y: 324, heading: -0.51, steering: 0.56, brake: 0.0, throttle: 0.64, gripLat: 0.62, gripLong: -0.56, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 576, y: 300, heading: -0.18, steering: 0.38, brake: 0.0, throttle: 0.9, gripLat: 0.42, gripLong: -0.84, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 708, y: 292, heading: -0.08, steering: 0.2, brake: 0.0, throttle: 0.98, gripLat: 0.24, gripLong: -0.92, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 818, y: 288, heading: -0.03, steering: 0.1, brake: 0.0, throttle: 1.0, gripLat: 0.12, gripLong: -0.96, phase: "exit", calloutIndex: 3 }
           ]
         }
       ];
@@ -334,6 +339,7 @@
         scenarioChips: document.getElementById("scenario-chips"),
         playbackTime: document.getElementById("playback-time"),
         scenarioTitle: document.getElementById("scenario-title"),
+        scenarioSummary: document.getElementById("scenario-summary"),
         phaseBadge: document.getElementById("phase-badge"),
         phaseReadout: document.getElementById("phase-readout"),
         coachingPanel: document.getElementById("coaching-panel"),
@@ -643,7 +649,7 @@
         p.text("Exit", appState.canvasSize.width - 70, 48);
         p.stroke(THEME.lineIdeal);
         p.strokeWeight(4);
-        p.drawingContext.setLineDash([9, 9]);
+        p.drawingContext.setLineDash([9, 7]);
         p.line(24, 38, 46, 38);
         p.drawingContext.setLineDash([]);
         p.stroke(scenario.accent);
@@ -660,6 +666,7 @@
         DOM.playPause.textContent = appState.isPlaying ? "Pause" : "Play";
         DOM.playbackTime.textContent = `${appState.currentTime.toFixed(1)}s`;
         DOM.scenarioTitle.textContent = scenario.label;
+        DOM.scenarioSummary.textContent = scenario.summary;
 
         syncBar(DOM.steeringFill, DOM.steeringValue, sample.steering);
         syncBar(DOM.brakeFill, DOM.brakeValue, sample.brake);
