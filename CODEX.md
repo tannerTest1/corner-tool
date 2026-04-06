@@ -10,6 +10,8 @@
 - After each meaningful change, run the app locally, validate behavior, inspect the visuals, check for errors, and refine before moving on.
 - If the UI is visually confusing, incomplete, or broken, treat that as a bug and fix it before adding more scope.
 - Prefer actually implementing and validating changes in this workspace instead of only describing them.
+- After each substantial pass, write a short memory log in `memories/` as a Markdown file so a future thread can recover project context quickly.
+- Each memory log should capture: current state, what changed, validation performed, known problems, and the most important next steps.
 
 ## Tech Constraints
 - Keep the project fully static and GitHub Pages compatible.
@@ -64,3 +66,13 @@
 - Telemetry updates live with playback.
 - Coaching text stays synchronized with the replay.
 - The current set of scenarios is visually distinct and easy to understand.
+
+## Memory Logs
+- Store pass summaries in `memories/`.
+- Use filenames like `YYYY-MM-DD-pass-001.md`, `YYYY-MM-DD-pass-002.md`, and so on.
+- Keep each memory concise and practical for a future Codex session:
+  - current baseline
+  - important changes made
+  - how the app was validated
+  - what still feels wrong
+  - the next recommended pass
