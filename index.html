@@ -26,17 +26,14 @@
         margin: 0;
         min-height: 100vh;
         color: var(--text-main);
-        background:
-          radial-gradient(circle at top left, rgba(65, 130, 255, 0.18), transparent 32%),
-          radial-gradient(circle at right, rgba(255, 181, 71, 0.16), transparent 28%),
-          linear-gradient(180deg, #09111d 0%, #07111a 45%, #040912 100%);
+        background: linear-gradient(180deg, #0b1524 0%, #08111d 100%);
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
       }
 
       .panel {
         background: var(--bg-panel);
         border: 1px solid rgba(158, 186, 221, 0.12);
-        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
         backdrop-filter: blur(12px);
       }
 
@@ -67,8 +64,8 @@
             <h1 class="text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">NASCAR Corner Coach</h1>
           </div>
           <p class="max-w-2xl text-sm leading-6 text-slate-300">
-            Compare the ideal line against common Cup-car mistakes. Watch the path, inputs, and grip usage together so the
-            cause-and-effect of each corner is easy to read.
+            Kansas Speedway is a 1.5-mile tri-oval with 17-20 degrees of banking in the turns. This replay compares the
+            ideal Turn 1 against common entry and throttle mistakes using the same corner reference.
           </p>
         </div>
       </header>
@@ -83,6 +80,11 @@
             <div class="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1 text-xs text-slate-300">
               Ghost line = ideal reference
             </div>
+          </div>
+          <div class="mb-3 flex flex-wrap gap-2 px-1">
+            <div class="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-300">1.5-mile tri-oval</div>
+            <div class="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-300">Turns: 17-20° banking</div>
+            <div class="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-300">Frontstretch: 9-11°</div>
           </div>
           <div id="canvas-holder" class="min-h-[420px] rounded-[1.25rem] border border-white/8 bg-slate-950/50"></div>
         </div>
@@ -210,43 +212,52 @@
 
       const TRACK = {
         bounds: {
-          minX: 90,
-          maxX: 820,
-          minY: 82,
-          maxY: 512
+          minX: 96,
+          maxX: 824,
+          minY: 58,
+          maxY: 516
         },
         outerWall: [
-          { x: 810, y: 498 },
-          { x: 744, y: 500 },
-          { x: 672, y: 494 },
-          { x: 590, y: 468 },
-          { x: 498, y: 417 },
-          { x: 400, y: 347 },
-          { x: 302, y: 270 },
-          { x: 204, y: 206 },
-          { x: 124, y: 176 }
+          { x: 108, y: 470 },
+          { x: 244, y: 470 },
+          { x: 392, y: 470 },
+          { x: 528, y: 464 },
+          { x: 638, y: 446 },
+          { x: 720, y: 410 },
+          { x: 774, y: 356 },
+          { x: 806, y: 286 },
+          { x: 812, y: 210 },
+          { x: 790, y: 136 },
+          { x: 742, y: 84 },
+          { x: 676, y: 64 }
         ],
         innerLane: [
-          { x: 808, y: 408 },
-          { x: 754, y: 406 },
-          { x: 694, y: 398 },
-          { x: 623, y: 374 },
-          { x: 543, y: 330 },
-          { x: 454, y: 269 },
-          { x: 357, y: 194 },
-          { x: 253, y: 130 },
-          { x: 176, y: 108 }
+          { x: 108, y: 394 },
+          { x: 242, y: 394 },
+          { x: 380, y: 392 },
+          { x: 500, y: 386 },
+          { x: 590, y: 372 },
+          { x: 654, y: 344 },
+          { x: 694, y: 302 },
+          { x: 714, y: 248 },
+          { x: 716, y: 190 },
+          { x: 700, y: 132 },
+          { x: 666, y: 90 },
+          { x: 616, y: 74 }
         ],
         apronEdge: [
-          { x: 806, y: 374 },
-          { x: 760, y: 372 },
-          { x: 707, y: 364 },
-          { x: 644, y: 341 },
-          { x: 571, y: 300 },
-          { x: 488, y: 241 },
-          { x: 392, y: 167 },
-          { x: 284, y: 103 },
-          { x: 198, y: 80 }
+          { x: 108, y: 364 },
+          { x: 238, y: 364 },
+          { x: 372, y: 362 },
+          { x: 486, y: 356 },
+          { x: 572, y: 342 },
+          { x: 632, y: 316 },
+          { x: 668, y: 278 },
+          { x: 686, y: 228 },
+          { x: 688, y: 176 },
+          { x: 674, y: 124 },
+          { x: 642, y: 84 },
+          { x: 598, y: 70 }
         ]
       };
 
@@ -287,14 +298,14 @@
             change: "Repeat this rhythm: patient entry, one decisive turn-in, then feed throttle once the nose is pointed."
           },
           keyframes: [
-            { t: 0.0, x: 764, y: 462, heading: 3.12, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: -0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
-            { t: 0.8, x: 694, y: 456, heading: 3.05, steering: 0.18, brake: 0.45, throttle: 0.34, gripLat: -0.24, gripLong: 0.46, phase: "entry", calloutIndex: 0 },
-            { t: 1.6, x: 610, y: 434, heading: 2.88, steering: 0.4, brake: 0.34, throttle: 0.12, gripLat: -0.46, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
-            { t: 2.4, x: 518, y: 390, heading: 2.58, steering: 0.62, brake: 0.14, throttle: 0.08, gripLat: -0.7, gripLong: 0.16, phase: "center", calloutIndex: 1 },
-            { t: 3.2, x: 422, y: 326, heading: 2.36, steering: 0.58, brake: 0.02, throttle: 0.28, gripLat: -0.66, gripLong: -0.18, phase: "center", calloutIndex: 2 },
-            { t: 4.0, x: 326, y: 256, heading: 2.2, steering: 0.34, brake: 0.0, throttle: 0.62, gripLat: -0.42, gripLong: -0.54, phase: "exit", calloutIndex: 2 },
-            { t: 4.8, x: 238, y: 205, heading: 2.08, steering: 0.16, brake: 0.0, throttle: 0.86, gripLat: -0.22, gripLong: -0.76, phase: "exit", calloutIndex: 3 },
-            { t: 5.5, x: 166, y: 176, heading: 2.02, steering: 0.06, brake: 0.0, throttle: 1.0, gripLat: -0.1, gripLong: -0.9, phase: "exit", calloutIndex: 3 }
+            { t: 0.0, x: 156, y: 448, heading: -0.02, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: -0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 292, y: 448, heading: -0.01, steering: 0.14, brake: 0.42, throttle: 0.36, gripLat: -0.2, gripLong: 0.42, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 442, y: 444, heading: -0.08, steering: 0.28, brake: 0.34, throttle: 0.14, gripLat: -0.34, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 584, y: 426, heading: -0.28, steering: 0.48, brake: 0.18, throttle: 0.08, gripLat: -0.56, gripLong: 0.18, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 680, y: 374, heading: -0.74, steering: 0.68, brake: 0.04, throttle: 0.18, gripLat: -0.74, gripLong: -0.08, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 720, y: 286, heading: -1.16, steering: 0.62, brake: 0.0, throttle: 0.42, gripLat: -0.66, gripLong: -0.42, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 714, y: 192, heading: -1.34, steering: 0.42, brake: 0.0, throttle: 0.76, gripLat: -0.44, gripLong: -0.74, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 684, y: 114, heading: -1.42, steering: 0.22, brake: 0.0, throttle: 1.0, gripLat: -0.24, gripLong: -0.9, phase: "exit", calloutIndex: 3 }
           ]
         },
         {
@@ -309,14 +320,14 @@
             change: "Trim a little more speed before turn-in so the nose can take a set sooner and finish lower."
           },
           keyframes: [
-            { t: 0.0, x: 766, y: 470, heading: 3.13, steering: 0.06, brake: 0.1, throttle: 0.84, gripLat: -0.08, gripLong: 0.12, phase: "entry", calloutIndex: 0 },
-            { t: 0.8, x: 706, y: 468, heading: 3.1, steering: 0.08, brake: 0.28, throttle: 0.5, gripLat: -0.12, gripLong: 0.34, phase: "entry", calloutIndex: 0 },
-            { t: 1.6, x: 638, y: 458, heading: 3.0, steering: 0.18, brake: 0.56, throttle: 0.1, gripLat: -0.22, gripLong: 0.58, phase: "entry", calloutIndex: 1 },
-            { t: 2.4, x: 562, y: 430, heading: 2.82, steering: 0.28, brake: 0.4, throttle: 0.04, gripLat: -0.34, gripLong: 0.44, phase: "center", calloutIndex: 1 },
-            { t: 3.2, x: 474, y: 388, heading: 2.6, steering: 0.38, brake: 0.1, throttle: 0.12, gripLat: -0.46, gripLong: 0.18, phase: "center", calloutIndex: 2 },
-            { t: 4.0, x: 376, y: 338, heading: 2.44, steering: 0.3, brake: 0.0, throttle: 0.4, gripLat: -0.38, gripLong: -0.28, phase: "exit", calloutIndex: 2 },
-            { t: 4.8, x: 276, y: 290, heading: 2.3, steering: 0.16, brake: 0.0, throttle: 0.72, gripLat: -0.22, gripLong: -0.56, phase: "exit", calloutIndex: 3 },
-            { t: 5.5, x: 186, y: 252, heading: 2.22, steering: 0.08, brake: 0.0, throttle: 0.94, gripLat: -0.12, gripLong: -0.8, phase: "exit", calloutIndex: 3 }
+            { t: 0.0, x: 156, y: 450, heading: -0.01, steering: 0.06, brake: 0.1, throttle: 0.84, gripLat: -0.08, gripLong: 0.12, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 304, y: 450, heading: -0.01, steering: 0.06, brake: 0.24, throttle: 0.54, gripLat: -0.1, gripLong: 0.28, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 468, y: 448, heading: -0.04, steering: 0.12, brake: 0.56, throttle: 0.08, gripLat: -0.16, gripLong: 0.58, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 624, y: 438, heading: -0.14, steering: 0.22, brake: 0.44, throttle: 0.04, gripLat: -0.24, gripLong: 0.42, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 738, y: 402, heading: -0.42, steering: 0.34, brake: 0.16, throttle: 0.08, gripLat: -0.36, gripLong: 0.16, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 790, y: 330, heading: -0.88, steering: 0.34, brake: 0.02, throttle: 0.26, gripLat: -0.34, gripLong: -0.18, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 794, y: 240, heading: -1.08, steering: 0.24, brake: 0.0, throttle: 0.62, gripLat: -0.22, gripLong: -0.52, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 768, y: 154, heading: -1.16, steering: 0.14, brake: 0.0, throttle: 0.9, gripLat: -0.12, gripLong: -0.76, phase: "exit", calloutIndex: 3 }
           ]
         },
         {
@@ -331,14 +342,14 @@
             change: "Delay the wheel input a beat so the apex happens later and the exit lane stays open."
           },
           keyframes: [
-            { t: 0.0, x: 764, y: 462, heading: 3.12, steering: 0.12, brake: 0.16, throttle: 0.74, gripLat: -0.14, gripLong: 0.2, phase: "entry", calloutIndex: 0 },
-            { t: 0.8, x: 686, y: 438, heading: 2.92, steering: 0.32, brake: 0.34, throttle: 0.26, gripLat: -0.34, gripLong: 0.36, phase: "entry", calloutIndex: 0 },
-            { t: 1.6, x: 610, y: 392, heading: 2.56, steering: 0.68, brake: 0.26, throttle: 0.1, gripLat: -0.7, gripLong: 0.24, phase: "entry", calloutIndex: 1 },
-            { t: 2.4, x: 542, y: 324, heading: 2.28, steering: 0.8, brake: 0.08, throttle: 0.08, gripLat: -0.82, gripLong: 0.08, phase: "center", calloutIndex: 1 },
-            { t: 3.2, x: 430, y: 242, heading: 2.16, steering: 0.58, brake: 0.0, throttle: 0.22, gripLat: -0.62, gripLong: -0.18, phase: "center", calloutIndex: 2 },
-            { t: 4.0, x: 300, y: 214, heading: 2.1, steering: 0.4, brake: 0.0, throttle: 0.52, gripLat: -0.42, gripLong: -0.44, phase: "exit", calloutIndex: 2 },
-            { t: 4.8, x: 206, y: 224, heading: 2.24, steering: 0.22, brake: 0.0, throttle: 0.78, gripLat: -0.24, gripLong: -0.66, phase: "exit", calloutIndex: 3 },
-            { t: 5.5, x: 144, y: 244, heading: 2.36, steering: 0.12, brake: 0.0, throttle: 0.95, gripLat: -0.12, gripLong: -0.82, phase: "exit", calloutIndex: 3 }
+            { t: 0.0, x: 156, y: 448, heading: -0.02, steering: 0.1, brake: 0.18, throttle: 0.72, gripLat: -0.12, gripLong: 0.2, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 282, y: 446, heading: -0.04, steering: 0.22, brake: 0.36, throttle: 0.24, gripLat: -0.24, gripLong: 0.36, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 408, y: 436, heading: -0.14, steering: 0.48, brake: 0.28, throttle: 0.08, gripLat: -0.48, gripLong: 0.24, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 522, y: 404, heading: -0.42, steering: 0.74, brake: 0.08, throttle: 0.08, gripLat: -0.76, gripLong: 0.08, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 622, y: 338, heading: -0.96, steering: 0.76, brake: 0.0, throttle: 0.18, gripLat: -0.8, gripLong: -0.12, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 694, y: 256, heading: -1.26, steering: 0.54, brake: 0.0, throttle: 0.46, gripLat: -0.58, gripLong: -0.4, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 744, y: 184, heading: -1.32, steering: 0.32, brake: 0.0, throttle: 0.74, gripLat: -0.34, gripLong: -0.66, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 784, y: 128, heading: -1.24, steering: 0.16, brake: 0.0, throttle: 0.92, gripLat: -0.18, gripLong: -0.8, phase: "exit", calloutIndex: 3 }
           ]
         },
         {
@@ -353,14 +364,14 @@
             change: "Wait until the wheel can open a touch more, then roll into throttle instead of snapping to it."
           },
           keyframes: [
-            { t: 0.0, x: 764, y: 462, heading: 3.12, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: -0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
-            { t: 0.8, x: 694, y: 456, heading: 3.05, steering: 0.18, brake: 0.45, throttle: 0.34, gripLat: -0.24, gripLong: 0.46, phase: "entry", calloutIndex: 0 },
-            { t: 1.6, x: 610, y: 434, heading: 2.88, steering: 0.4, brake: 0.34, throttle: 0.12, gripLat: -0.46, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
-            { t: 2.4, x: 520, y: 394, heading: 2.62, steering: 0.62, brake: 0.12, throttle: 0.22, gripLat: -0.68, gripLong: 0.02, phase: "center", calloutIndex: 1 },
-            { t: 3.2, x: 420, y: 344, heading: 2.42, steering: 0.56, brake: 0.0, throttle: 0.64, gripLat: -0.58, gripLong: -0.56, phase: "center", calloutIndex: 2 },
-            { t: 4.0, x: 308, y: 304, heading: 2.32, steering: 0.38, brake: 0.0, throttle: 0.9, gripLat: -0.38, gripLong: -0.84, phase: "exit", calloutIndex: 2 },
-            { t: 4.8, x: 204, y: 282, heading: 2.28, steering: 0.2, brake: 0.0, throttle: 0.98, gripLat: -0.22, gripLong: -0.92, phase: "exit", calloutIndex: 3 },
-            { t: 5.5, x: 134, y: 272, heading: 2.24, steering: 0.1, brake: 0.0, throttle: 1.0, gripLat: -0.12, gripLong: -0.96, phase: "exit", calloutIndex: 3 }
+            { t: 0.0, x: 156, y: 448, heading: -0.02, steering: 0.08, brake: 0.18, throttle: 0.72, gripLat: -0.12, gripLong: 0.22, phase: "entry", calloutIndex: 0 },
+            { t: 0.8, x: 292, y: 448, heading: -0.01, steering: 0.14, brake: 0.42, throttle: 0.34, gripLat: -0.2, gripLong: 0.42, phase: "entry", calloutIndex: 0 },
+            { t: 1.6, x: 442, y: 444, heading: -0.08, steering: 0.28, brake: 0.34, throttle: 0.14, gripLat: -0.34, gripLong: 0.34, phase: "entry", calloutIndex: 1 },
+            { t: 2.4, x: 586, y: 430, heading: -0.24, steering: 0.46, brake: 0.14, throttle: 0.22, gripLat: -0.52, gripLong: 0.04, phase: "center", calloutIndex: 1 },
+            { t: 3.2, x: 694, y: 388, heading: -0.62, steering: 0.58, brake: 0.0, throttle: 0.64, gripLat: -0.6, gripLong: -0.56, phase: "center", calloutIndex: 2 },
+            { t: 4.0, x: 756, y: 314, heading: -1.02, steering: 0.46, brake: 0.0, throttle: 0.9, gripLat: -0.44, gripLong: -0.84, phase: "exit", calloutIndex: 2 },
+            { t: 4.8, x: 770, y: 222, heading: -1.18, steering: 0.28, brake: 0.0, throttle: 0.98, gripLat: -0.28, gripLong: -0.92, phase: "exit", calloutIndex: 3 },
+            { t: 5.5, x: 756, y: 142, heading: -1.22, steering: 0.16, brake: 0.0, throttle: 1.0, gripLat: -0.16, gripLong: -0.96, phase: "exit", calloutIndex: 3 }
           ]
         }
       ];
@@ -549,6 +560,8 @@
         const outer = TRACK.outerWall;
         const inner = TRACK.innerLane;
         const apron = TRACK.apronEdge;
+        const grooveMid = blendTrackPaths(inner, outer, 0.42);
+        const grooveHigh = blendTrackPaths(inner, outer, 0.72);
 
         p.push();
         p.noStroke();
@@ -566,7 +579,21 @@
         p.strokeWeight(1.4);
         drawPolyLine(p, outer);
         drawPolyLine(p, inner);
+
+        p.stroke(160, 191, 232, 24);
+        p.strokeWeight(1);
+        p.drawingContext.setLineDash([6, 10]);
+        drawPolyLine(p, grooveMid);
+        drawPolyLine(p, grooveHigh);
+        p.drawingContext.setLineDash([]);
         p.pop();
+      }
+
+      function blendTrackPaths(inner, outer, ratio) {
+        return inner.map((point, index) => ({
+          x: lerp(point.x, outer[index].x, ratio),
+          y: lerp(point.y, outer[index].y, ratio)
+        }));
       }
 
       function drawClosedRibbon(p, outerPoints, innerPoints) {
@@ -663,6 +690,8 @@
         p.text("Exit", 28, 48);
         p.text("Center", appState.canvasSize.width * 0.47, appState.canvasSize.height * 0.47);
         p.text("Entry", appState.canvasSize.width - 88, appState.canvasSize.height - 54);
+        p.text("Toward Turn 2", appState.canvasSize.width * 0.64, 20);
+        p.text("Frontstretch", appState.canvasSize.width * 0.12, appState.canvasSize.height - 18);
         p.stroke(THEME.lineIdeal);
         p.strokeWeight(4);
         p.drawingContext.setLineDash([9, 7]);
